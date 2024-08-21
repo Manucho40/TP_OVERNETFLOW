@@ -22,7 +22,7 @@ public class DepartementVoMockBuilder {
     }
 
     public  DepartementVoMockBuilder setCode(String code){
-        this.designation = designation;
+        this.code = code;
         return this;
     }
 

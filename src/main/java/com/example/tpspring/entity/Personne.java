@@ -1,4 +1,6 @@
 package com.example.tpspring.entity;
+import com.example.tpspring.vo.DepartementVO;
+import com.example.tpspring.vo.PersonneVO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -37,12 +39,11 @@ public class Personne {
         this.age = age;
         this.departement = departement;
     }
-    public void modifierPersonne( String nom, String prenom, int age, Departement departement){
-        this.nom = nom;
-        this.prenom = prenom;
-        this.age = age;
+    public void modifierPersonne(PersonneVO personneVO, Departement departement){
+        this.nom = personneVO.getNom();
+        this.prenom =personneVO.getPrenom();
+        this.age = personneVO.getAge();
         this.departement = departement;
-
     }
 
     public Long getId() { return id; }

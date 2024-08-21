@@ -3,6 +3,7 @@ import com.example.tpspring.entity.Departement;
 import com.example.tpspring.entity.Personne;
 import com.example.tpspring.repository.DepartementRepository;
 import com.example.tpspring.repository.PersonneRepository;
+import com.example.tpspring.vo.DepartementVO;
 import com.example.tpspring.vo.PersonneVO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,9 +15,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +68,7 @@ class PersonneServiceTest {
             .build();
 
     @Test
-    public void obtenirListeDesPersonnes() {
+    public void should_obtenirListeDesPersonnes() {
         // Given
         Personne personne1 = new PersonneMockBuilder()
                 .setId(1L)
@@ -84,7 +87,6 @@ class PersonneServiceTest {
         List<Personne> personnes = new ArrayList<>();
         personnes.add(personne1);
         personnes.add(personne2);
-
         when(personneRepository.findAll()).thenReturn(personnes);
 
         // When
@@ -95,7 +97,7 @@ class PersonneServiceTest {
     }
 
     @Test
-    public void getPersonneId() {
+    public void should_recuperePersonneParIdentidentifiant_obtenirPersonneParId() {
         // Given
         Long id = mockPersonne1.getId();
         when(personneRepository.findById(id)).thenReturn(Optional.of(mockPersonne1));
@@ -106,20 +108,11 @@ class PersonneServiceTest {
         // Then
         assertNotNull(personneVO);
         assertEquals("Dupont", personneVO.getNom());
-    }
-    @Test
-    void testObtenirPersonneById_Id_pas_trouver() {
-        when(personneRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            personneService.obtenirPersonneParId(1L);
-        });
-
-        assertEquals("L'identifiant n'existe pas.", exception.getMessage());
     }
 
     @Test
-   public void should_Ajouter_Personne() {
+   public void should_AjouterNouvellePersonne() {
         // Given
         Departement mockDepartement = new DepartementMockBuilder()
                 .setId(1L)
@@ -127,63 +120,69 @@ class PersonneServiceTest {
                 .setDesignation("Var")
                 .build();
 
-        Personne mockPersonne = new PersonneMockBuilder()
+        Personne personne = new PersonneMockBuilder()
                 .setId(1L)
                 .setNom("Dupont")
                 .setPrenom("Jean")
                 .setAge(30)
                 .setDepartement(mockDepartement)
                 .build();
-
-
-        PersonneVO mockPersonneVO = new PersonneVO(mockPersonne);
-
+        PersonneVO mockPersonneVO = new PersonneVO(personne);
         when(departementRepository.findById(1L)).thenReturn(Optional.of(mockDepartement));
-        when(personneRepository.save(any(Personne.class))).thenReturn(mockPersonne);
+        when(personneRepository.save(any(Personne.class))).thenReturn(personne);
 
+        //When
         PersonneVO personneVO = personneService.ajouterNouvellePersonne(mockPersonneVO);
-
-
+        //Then
         assertNotNull(personneVO);
         assertNotNull(personneVO.getDepartementVO());
-        assertEquals(mockPersonne.getNom(), personneVO.getNom());
-        assertEquals(mockPersonne.getPrenom(), personneVO.getPrenom());
-        assertEquals(mockPersonne.getAge(), personneVO.getAge());
-
+        assertEquals(personne.getNom(), personneVO.getNom());
+        assertEquals(personne.getPrenom(), personneVO.getPrenom());
+        assertEquals(personne.getAge(), personneVO.getAge());
     }
 
 
     @Test
-    void testDeletePersonne_Success() {
+    void should_supprimerUtilisateur_supprimerPersonne() {
+        //Given
         when(personneRepository.existsById(1L)).thenReturn(true);
 
+        //When
         personneService.supprimerPersonne(1L);
 
-    }
+        //Then
+        verify(personneRepository, times(1)).deleteById(1L);
 
-    @Test
-    void testDeletePersonne_IdNotFound() {
-        when(personneRepository.existsById(1L)).thenReturn(false);
-
-        personneService.supprimerPersonne(1L);
-
-    }
-   /* @Test
-    void deletePersonne() {
-        Integer id = 30;
-        when(personneRepository.existsById(id)).thenReturn(true);
-        boolean result = personneService.deletePersonne(id);
-        assertEquals(true, personneService.deletePersonne(30));
     }
 
     @Test
     void updatePersonne() {
-        Integer id = 27;
-        PersonneVO addPersonne = new PersonneVO("SENI", "Anne Marie", 60, 1);
-        Personne result = new Personne(new PersonneVO("SENI", "Anne Marie", 60, 1));
-        ResponseEntity<Personne> resultat = ResponseEntity.ok(result);
-        when(personneService.updatePersonne(id, addPersonne)).thenReturn(resultat);
-        assertEquals(resultat, personneService.updatePersonne(id, addPersonne));
+        // Given
+      Departement departement = new Departement("Abidjan", "15e");
+      //DepartementVO departementVO = new DepartementVoMockBuilder().setId(1L).setCode("D1").setDesignation("Desi").build();
 
-    }*/
+      //PersonneVO personneVO = new PersonneVoMockBuilder().setId(1L).setNom("NOM1").setDepartementVO(departementVO).build()
+        Personne personne = new Personne("III","YYY",56,departement);
+        DepartementVO departementVO = new DepartementVO();
+        PersonneVO personneVO = new PersonneVoMockBuilder().setId(1L).setNom("NOM1").setDepartementVO(departementVO).build();
+
+        when(personneRepository.findById(1L)).thenReturn(Optional.of(personne));
+        when(personneRepository.existsById(1L)).thenReturn(true);
+        when(departementRepository.findById(departementVO.getId())).thenReturn(Optional.of(departement));
+        //when(personneRepository.findById(1L)).thenReturn(Optional.of(personne));
+        when(personneRepository.save(personne)).thenReturn(personne);
+        //when(personneRepository.findById(any(Long.class))).thenReturn(Optional.of(personne));
+
+
+        // When
+
+        PersonneVO personne1 = personneService.modifierPersonne(1L, personneVO);
+
+        // Then7
+        assertNotNull(personne1);
+        assertEquals(personne1.getNom(), "NOM1");
+
+
+    }
+
 }

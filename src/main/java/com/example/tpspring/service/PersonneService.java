@@ -82,22 +82,18 @@ public class PersonneService {
      * @return Retourne la personneVO modifier
      */
     public PersonneVO modifierPersonne (Long id, PersonneVO personneVO){
-       if(personneRepository.existsById(id)){
+
+           Personne personneRecupereeParId = personneRepository.findById(id).orElseThrow(()->new RuntimeException("Cette personne est inéxistante!"));
            Departement nouveauDepartement = departementRepository.findById(personneVO.getDepartementVO().getId())
                    .orElseThrow(() -> new RuntimeException("Le département n'existe pas."));
-           Personne personneExistante = personneRepository.findById(id).orElseThrow(()->new RuntimeException("Cette personne est inéxistante!"));
-           if (personneExistante != null) {
-               personneExistante.setNom(personneVO.getNom());
-               personneExistante.setNom(personneVO.getNom());
-               personneExistante.setPrenom(personneVO.getPrenom());
-               personneExistante.setAge(personneVO.getAge());
-               personneExistante.setDepartement(nouveauDepartement);
-               Personne personneMiseAJour = personneRepository.save(personneExistante);
-               personneVO = new PersonneVO(personneMiseAJour);
-           }
 
-       }
-        return  personneVO;
+           personneRecupereeParId.modifierPersonne(new PersonneVO(personneRecupereeParId), nouveauDepartement);
+
+           Personne personne = personneRepository.save(personneRecupereeParId);
+
+           personneVO = new PersonneVO(personne);
+
+           return  personneVO;
     }
 
 

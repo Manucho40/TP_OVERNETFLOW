@@ -35,7 +35,7 @@ public class PersonneVoMockBuilder {
 
     public PersonneVO build(){
         PersonneVO personneVO = mock(PersonneVO.class);
-        when(personneVO.getId()).thenReturn(id);
+      when(personneVO.getId()).thenReturn(id);
         when(personneVO.getNom()).thenReturn(nom);
         when(personneVO.getPrenom()).thenReturn(prenom);
         when(personneVO.getAge()).thenReturn(age);

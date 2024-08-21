@@ -1,15 +1,15 @@
 <div class="container">
   <div class="AddContainer">
     <h2>Ajout de personne</h2>
-    {{ addUserForm.value.nom }}
-    {{ addUserForm.value.prenom }}
-    {{ addUserForm.value.age }}
-    {{ addUserForm.value.departementVO }}
+    {{ donneesDuFormulaireAjoutPersonne.value.nom }}
+    {{ donneesDuFormulaireAjoutPersonne.value.prenom }}
+    {{ donneesDuFormulaireAjoutPersonne.value.age }}
+    {{ donneesDuFormulaireAjoutPersonne.value.departementVO }}
     <form
-      [formGroup]="addUserForm"
+      [formGroup]="donneesDuFormulaireAjoutPersonne"
       novalidate
       class="formulaire"
-      (ngSubmit)="onSubmit()"
+      (ngSubmit)="soumettreFormulaireAjout()"
     >
       <p-toast />
       <p-floatLabel style="margin-bottom: 20px">
@@ -51,9 +51,9 @@
         <p-autoComplete
           formControlName="departementVO"
           [style]="{ width: '100%' }"
-          [suggestions]="filterDepartements"
+          [suggestions]="departementFiltrer"
           optionValue="id"
-          (completeMethod)="filterDepartement($event)"
+          (completeMethod)="faireAutocompletionChampDepartement($event)"
           optionLabel="designation"
           dropdown="true"
           appendTo="body"
@@ -69,21 +69,21 @@
         type="submit"
         [style]="{ width: '100%' }"
         [disabled]="
-          !addUserForm.value.nom ||
-          !addUserForm.value.prenom ||
-          !addUserForm.value.age ||
-          !addUserForm.value.departementVO ||
-          filterDepartements.length == 0
+          !donneesDuFormulaireAjoutPersonne.value.nom ||
+          !donneesDuFormulaireAjoutPersonne.value.prenom ||
+          !donneesDuFormulaireAjoutPersonne.value.age ||
+          !donneesDuFormulaireAjoutPersonne.value.departementVO ||
+          departementFiltrer.length == 0
         "
       />
     </form>
   </div>
   <div class="ListContainer">
-    <h2>Liste des personnes</h2>
+    <h2>Liste des liste de personnes</h2>
     <div class="card">
       <p-table
         #dt2
-        [value]="personnes"
+        [value]="listeDeToutesLesPersonnes"
         dataKey="id"
         [paginator]="true"
         [rows]="5"
@@ -138,11 +138,11 @@
                 <ng-template
                   pTemplate="filter"
                   let-value
-                  let-filter="filterCallback"
+                  let-filter="faireTriePersonnesParAge"
                 >
                   <p-dropdown
-                    [options]="statuses"
-                    (onChange)="filterCallback($event.value)"
+                    [options]="optionDeTrieParAge"
+                    (onChange)="faireTriePersonnesParAge($event.value)"
                     placeholder="Selectionnez"
                     appendTo="body"
                     [showClear]="true"
@@ -169,14 +169,16 @@
         </ng-template>
         <ng-template pTemplate="body" let-personne>
           <tr>
-            <!-- <td>{{ personnes?.indexOf(personne) + 1 }}</td> -->
+            <!-- <td>{{ listeDeToutesLesPersonnes?.indexOf(personne) + 1 }}</td> -->
             <td>{{ personne.nom }}</td>
             <td>{{ personne.prenom }}</td>
             <td style="text-align: center">{{ personne.age }}</td>
             <td>
               {{
                 !personne.departementVO.designation
-                  ? afficheDepartement(personne.departementVO.id)
+                  ? afficheDepartementApresAjoutPersonne(
+                      personne.departementVO.id
+                    )
                   : personne.departementVO.designation
               }}
             </td>
@@ -184,14 +186,14 @@
               <app-modal
                 [id]="personne.id"
                 [personne]="personne"
-                [personnes]="personnes"
-                [departements]="departements"
+                [listeDeToutesLesPersonnes]="listeDeToutesLesPersonnes"
+                [listeDeToutesLesDepartements]="listeDeToutesLesDepartements"
                 [departement]="personne.departementVO.id"
                 onKeyDown="onKeyDown()"
               ></app-modal>
               <app-delete-user
                 [id]="personne.id"
-                [personnes]="personnes"
+                [listeDeToutesLesPersonnes]="listeDeToutesLesPersonnes"
               ></app-delete-user>
             </td>
           </tr>

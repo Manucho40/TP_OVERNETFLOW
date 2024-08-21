@@ -38,54 +38,61 @@ interface AutoCompleteCompleteEvent {
 export class ModalComponent {
   constructor(
     private personneService: PersonneService,
-    private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) {}
   @Input() id: number | undefined;
-  @Input() personnes: PersonneVO[] | undefined;
+  @Input() listeDeToutesLesPersonnes: PersonneVO[] | undefined;
   @Input() personne: PersonneVO | undefined;
-  @Input() departements: DepartementVO[] | undefined;
+  @Input() listeDeToutesLesDepartements: DepartementVO[] | undefined;
   @Input() departement: DepartementVO | undefined;
-  @Input() onKeyDown: any;
+  @Input() empecheSaisieCaractereSpeciauxChiffre: any;
   responseUpdate: PersonneVO | undefined;
-  editUser: FormGroup = new FormGroup({});
+  donneesDuFormulaireModifierPersonne: FormGroup = new FormGroup({});
   loadingEdit: boolean = false;
   visible: boolean = false;
-  filterDepart: DepartementVO[] = [];
+  filtrerDepartement: DepartementVO[] = [];
 
   ngOnInit() {
-    this.editUser = new FormGroup({
+    this.donneesDuFormulaireModifierPersonne = new FormGroup({
       nom: new FormControl(this.personne?.nom),
       prenom: new FormControl(this.personne?.prenom),
       age: new FormControl(this.personne?.age),
       departementVO: new FormControl(this.personne?.departementVO?.designation),
     });
   }
-  showDialog() {
+
+  /**
+   * Affiche la modal et initialise le formulaire de modification
+   */
+  afficherModal() {
     this.visible = true;
-    this.editUser = new FormGroup({
+    this.donneesDuFormulaireModifierPersonne = new FormGroup({
       nom: new FormControl(this.personne?.nom),
       prenom: new FormControl(this.personne?.prenom),
       age: new FormControl(this.personne?.age),
       departementVO: new FormControl(this.personne?.departementVO?.designation),
     });
-
-    console.log(this.editUser.value);
   }
 
-  loadEdit() {
+  /**
+   * Soumet le formulaire de modification
+   */
+  soumettreFormulaireModifierPersonne() {
     if (
-      !this.editUser.valid ||
-      !this.editUser.value.nom ||
-      !this.editUser.value.prenom ||
-      !this.editUser.value.departementVO
+      !this.donneesDuFormulaireModifierPersonne.valid ||
+      !this.donneesDuFormulaireModifierPersonne.value.nom ||
+      !this.donneesDuFormulaireModifierPersonne.value.prenom ||
+      !this.donneesDuFormulaireModifierPersonne.value.departementVO
     ) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
         detail: 'Tous les champs sont obligatoires',
       });
-    } else if (this.editUser.value.age < 0 || !this.editUser.value.age) {
+    } else if (
+      this.donneesDuFormulaireModifierPersonne.value.age < 0 ||
+      !this.donneesDuFormulaireModifierPersonne.value.age
+    ) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -93,30 +100,37 @@ export class ModalComponent {
       });
     } else {
       this.loadingEdit = true;
-      const idParDepartement = this.departements?.find(
-        (index) => index.designation === this.editUser.value.departementVO
+      const idParDepartement = this.filtrerDepartement?.find(
+        (index) =>
+          index.designation ===
+          this.donneesDuFormulaireModifierPersonne.value.departementVO
       );
-      if (typeof this.editUser.value.departementVO === 'number') {
-        this.editUser.value.departementVO = {
-          id: this.editUser.value.departementVO,
+      if (
+        typeof this.donneesDuFormulaireModifierPersonne.value.departementVO ===
+        'number'
+      ) {
+        this.donneesDuFormulaireModifierPersonne.value.departementVO = {
+          id: this.donneesDuFormulaireModifierPersonne.value.departementVO,
         };
       } else {
-        this.editUser.value.departementVO = {
+        this.donneesDuFormulaireModifierPersonne.value.departementVO = {
           id: idParDepartement?.id,
         };
       }
       setTimeout(() => {
         if (this.id) {
-          console.log('update personne', this.editUser.value);
           this.personneService
-            .updatPersonne(this.id, this.editUser.value)
+            .updatPersonne(
+              this.id,
+              this.donneesDuFormulaireModifierPersonne.value
+            )
             .subscribe((response: any) => {
               this.responseUpdate = response;
-              if (this.personnes && this.responseUpdate) {
-                const index = this.personnes?.findIndex(
+              if (this.listeDeToutesLesPersonnes && this.responseUpdate) {
+                const index = this.listeDeToutesLesPersonnes?.findIndex(
                   (index) => index.id === this.id
                 );
-                this.personnes[index] = this.responseUpdate;
+                this.listeDeToutesLesPersonnes[index] = this.responseUpdate;
               }
             });
           this.loadingEdit = false;
@@ -127,22 +141,33 @@ export class ModalComponent {
             detail: 'Message Content',
           });
         }
-        this.editUser.reset();
+        this.donneesDuFormulaireModifierPersonne.reset();
       }, 2000);
     }
   }
-  filterDepartement(event: AutoCompleteCompleteEvent) {
+
+  /**
+   * Auto completion du champ departement
+   * @param event
+   */
+  faireAutocompletionChampDepartement(event: AutoCompleteCompleteEvent) {
     let filtered: any[] = [];
     let query = event.query;
 
-    for (let i = 0; i < (this.departements as DepartementVO[]).length; i++) {
-      let departement = (this.departements as DepartementVO[])[i];
+    for (
+      let i = 0;
+      i < (this.listeDeToutesLesDepartements as DepartementVO[]).length;
+      i++
+    ) {
+      let departement = (this.listeDeToutesLesDepartements as DepartementVO[])[
+        i
+      ];
       if (
         departement.designation?.toLowerCase().indexOf(query.toLowerCase()) == 0
       ) {
         filtered.push(departement);
       }
     }
-    this.filterDepart = filtered;
+    this.filtrerDepartement = filtered;
   }
 }

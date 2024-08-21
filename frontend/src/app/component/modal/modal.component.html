@@ -1,4 +1,4 @@
-<p-button (onClick)="showDialog()" label="Modifier" />
+<p-button (onClick)="afficherModal()" label="Modifier" />
 <p-dialog
   header="Edit Profile"
   [modal]="true"
@@ -6,7 +6,11 @@
   [style]="{ width: '50rem' }"
   dismissableMask="true"
 >
-  <form [formGroup]="editUser" novalidate class="formulaire">
+  <form
+    [formGroup]="donneesDuFormulaireModifierPersonne"
+    novalidate
+    class="formulaire"
+  >
     <p-floatLabel style="margin-bottom: 20px">
       <input style="width: 100%" pInputText id="nom" formControlName="nom" />
       <label for="nom">Nom</label>
@@ -44,9 +48,9 @@
       <p-autoComplete
         formControlName="departementVO"
         [style]="{ width: '100%', marginBottom: '20px' }"
-        [suggestions]="filterDepart"
+        [suggestions]="filtrerDepartement"
         optionValue="id"
-        (completeMethod)="filterDepartement($event)"
+        (completeMethod)="faireAutocompletionChampDepartement($event)"
         optionLabel="designation"
         dropdown="true"
         appendTo="body"
@@ -57,14 +61,14 @@
         label="Modifier"
         icon="pi pi-check"
         [loading]="loadingEdit"
-        (onClick)="loadEdit()"
+        (onClick)="soumettreFormulaireModifierPersonne()"
         [style]="{ marginRight: '10px' }"
         [disabled]="
-          !editUser.value.nom ||
-          !editUser.value.prenom ||
-          !editUser.value.age ||
-          !editUser.value.departementVO ||
-          filterDepart.length == 0
+          !donneesDuFormulaireModifierPersonne.value.nom ||
+          !donneesDuFormulaireModifierPersonne.value.prenom ||
+          !donneesDuFormulaireModifierPersonne.value.age ||
+          !donneesDuFormulaireModifierPersonne.value.departementVO ||
+          filtrerDepartement.length == 0
         "
       />
       <p-button

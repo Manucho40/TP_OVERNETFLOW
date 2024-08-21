@@ -21,8 +21,6 @@ import { DepartementService } from '../services/departement/departement.service'
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { error } from 'console';
-import e from 'express';
 
 interface AutoCompleteCompleteEvent {
   originalEvent: Event;
@@ -63,39 +61,55 @@ export class PersonneComponent {
     private departementService: DepartementService
   ) {}
 
-  addUserForm: FormGroup = new FormGroup({});
+  listeDeToutesLesPersonnes: PersonneVO[] = [];
+  listeDeToutesLesDepartements: DepartementVO[] = [];
+  donneesDuFormulaireAjoutPersonne: FormGroup = new FormGroup({});
+  departement: string | undefined;
+  departementFiltrer: DepartementVO[] = [];
+  optionDeTrieParAge!: any[];
+
   handleError: any;
   visible: boolean = false;
   loading: boolean = false;
   loadingEdit: boolean = false;
-  personnes: PersonneVO[] = [];
-  departements: DepartementVO[] = [];
-  departement: string | undefined;
-  filterDepartements: DepartementVO[] = [];
-  statuses!: any[];
 
   /**
    * Initialisation du composant personne avec toutes les données dont elle à besoin à son initialisation.
    */
   ngOnInit() {
-    this.allPersonnes();
-    this.allDepartements();
-    this.statuses = [
+    this.obtenirListeDePersonnes();
+    this.obtenirListeDeDepartements();
+    this.optionDeTrieParAge = [
       { label: 'Moins de 18ans', value: 'Moins' },
       { label: '18ans et plus', value: 'Plus' },
     ];
-    this.addUserForm = new FormGroup({
+    this.donneesDuFormulaireAjoutPersonne = new FormGroup({
       nom: new FormControl(''),
       prenom: new FormControl(''),
       age: new FormControl(),
       departementVO: new FormControl<DepartementVO | undefined>(undefined),
     });
   }
-
-  allPersonnes() {
+  /**
+   * Fonction permettant d'obtenir la liste de toutes les personnes
+   */
+  obtenirListeDePersonnes() {
     this.personneService.getPersonnes().subscribe({
       next: (data) => {
-        this.personnes = data;
+        this.listeDeToutesLesPersonnes = data;
+      },
+      error: (error) => {
+        console.error(error);
+      },
+    });
+  }
+  /**
+   * Fonction permettant d'obtenir la liste de tous les departements
+   */
+  obtenirListeDeDepartements() {
+    this.departementService.getDepartements().subscribe({
+      next: (data) => {
+        this.listeDeToutesLesDepartements = data;
       },
       error: (error) => {
         console.error(error);
@@ -103,44 +117,25 @@ export class PersonneComponent {
     });
   }
 
-  allDepartements() {
-    try {
-      this.departementService.getDepartements().subscribe((data) => {
-        this.departements = data;
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  /**
-   * Fonction permettant d'ouvrir le modal de modification
-   */
-  loadEdit() {
-    this.loadingEdit = true;
-    setTimeout(() => {
-      this.visible = false;
-      this.loadingEdit = false;
-    }, 2000);
-  }
-
   /**
    * Fonction permettant de filtrer les personnes en fonction de leur age (moins de 18ans ou 18ans et plus)
    * @param status
    */
-  filterCallback(status: string): void {
+  faireTriePersonnesParAge(status: string): void {
     this.personneService.getPersonnes().subscribe((data) => {
-      this.personnes = data;
+      this.listeDeToutesLesPersonnes = data;
       switch (status) {
         case 'Moins':
-          this.personnes = this.personnes.filter((personne) => {
-            return personne.age !== undefined && personne.age < 18;
-          });
+          this.listeDeToutesLesPersonnes =
+            this.listeDeToutesLesPersonnes.filter((index) => {
+              return index.age !== undefined && index.age < 18;
+            });
           break;
         case 'Plus':
-          this.personnes = this.personnes.filter((personne) => {
-            return personne.age !== undefined && personne.age >= 18;
-          });
+          this.listeDeToutesLesPersonnes =
+            this.listeDeToutesLesPersonnes.filter((index) => {
+              return index.age !== undefined && index.age >= 18;
+            });
           break;
         default:
           break;
@@ -160,36 +155,50 @@ export class PersonneComponent {
    * Fonction pour le champ de type autocompletion permettant de filtrer les departements
    * @param event
    */
-  filterDepartement(event: AutoCompleteCompleteEvent) {
+  faireAutocompletionChampDepartement(event: AutoCompleteCompleteEvent) {
     let filtered: any[] = [];
     let query = event.query;
 
-    for (let i = 0; i < (this.departements as DepartementVO[]).length; i++) {
-      let departement = (this.departements as DepartementVO[])[i];
+    for (
+      let i = 0;
+      i < (this.listeDeToutesLesDepartements as DepartementVO[]).length;
+      i++
+    ) {
+      let departement = (this.listeDeToutesLesDepartements as DepartementVO[])[
+        i
+      ];
       if (
         departement.designation?.toLowerCase().indexOf(query.toLowerCase()) == 0
       ) {
         filtered.push(departement);
-        console.log(filtered);
       }
     }
-    this.filterDepartements = filtered;
+    this.departementFiltrer = filtered;
   }
 
-  afficheDepartement(id: number) {
-    if (this.departements) {
-      this.departement = this.departements.find(
+  /**
+   * Verifie l'existence d'un departement pour l'afficher dans la le tableau
+   * @param id
+   * @returns Retour un DepartementVo
+   */
+  afficheDepartementApresAjoutPersonne(id: number) {
+    if (this.listeDeToutesLesDepartements) {
+      this.departement = this.listeDeToutesLesDepartements.find(
         (index) => index.id === id
       )?.designation;
     }
     return this.departement;
   }
 
-  showDialog() {
+  afficherModal() {
     this.visible = true;
   }
 
-  confirm2(event: Event) {
+  /**
+   * Fonction permettant d'afficher un message de confirmation
+   * @param event
+   */
+  affichacherMessageDeConfirmation(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: 'Voulez vous confirmer cette suppréssion?',
@@ -216,37 +225,53 @@ export class PersonneComponent {
       },
     });
   }
-  @Output() onKeyDown(value: string) {
-    const isNumber = value >= '0' && value <= '9';
-    const isSpecialCharacter = /[^a-zA-Z\s-]/.test(value);
-    const isAllowed = value === '-' || /^[a-zA-Z\s]$/.test(value);
 
+  /**
+   * Evite la saisie d'un caractère speciaux ou chiffre
+   * @param value
+   * @returns
+   */
+  @Output() empecheSaisieCaractereSpeciauxChiffre(value: string) {
+    const isNumber = value >= '0' && value <= '9';
+    const isAllowed = /^[a-zA-ZÀ-ÖØ-öø-ÿ\s-]$/.test(value);
+    const isSpecialCharacter = /[^a-zA-ZÀ-ÖØ-öø-ÿ\s-]/.test(value);
     if (isNumber || (isSpecialCharacter && !isAllowed)) {
       return true;
     }
     return false;
   }
-  onSubmit() {
+
+  /**
+   * Fonction permettant de soumettre le formulaire d'ajout de personne
+   */
+  soumettreFormulaireAjout() {
     if (
-      !this.addUserForm.valid ||
-      !this.addUserForm.value.nom ||
-      !this.addUserForm.value.prenom ||
-      !this.addUserForm.value.departementVO
+      !this.donneesDuFormulaireAjoutPersonne.valid ||
+      !this.donneesDuFormulaireAjoutPersonne.value.nom ||
+      !this.donneesDuFormulaireAjoutPersonne.value.prenom ||
+      !this.donneesDuFormulaireAjoutPersonne.value.departementVO
     ) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
         detail: 'Tous les champs sont obligatoires',
       });
-    } else if (this.addUserForm.value.age < 0 || !this.addUserForm.value.age) {
+    } else if (
+      this.donneesDuFormulaireAjoutPersonne.value.age < 0 ||
+      !this.donneesDuFormulaireAjoutPersonne.value.age
+    ) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
         detail: 'Age doit etre superieur a 0',
       });
     } else if (
-      this.onKeyDown(this.addUserForm.value.nom) ||
-      this.onKeyDown(this.addUserForm.value.prenom)
+      this.empecheSaisieCaractereSpeciauxChiffre(
+        this.donneesDuFormulaireAjoutPersonne.value.nom
+      ) ||
+      this.empecheSaisieCaractereSpeciauxChiffre(
+        this.donneesDuFormulaireAjoutPersonne.value.prenom
+      )
     ) {
       this.messageService.add({
         severity: 'error',
@@ -255,25 +280,28 @@ export class PersonneComponent {
           'Caractères speciaux non autorisés dans les champs nom et prenom',
       });
     } else {
-      console.log();
-      this.addUserForm.value.departementVO = {
-        id: this.addUserForm.value.departementVO,
+      this.donneesDuFormulaireAjoutPersonne.value.departementVO = {
+        id: this.donneesDuFormulaireAjoutPersonne.value.departementVO,
       };
       this.loading = true;
       setTimeout(() => {
         this.personneService
-          .addPersonne(this.addUserForm.value)
-          .subscribe((response: any) => {
-            this.personnes.unshift(response);
+          .addPersonne(this.donneesDuFormulaireAjoutPersonne.value)
+          .subscribe({
+            next: (data) => {
+              this.listeDeToutesLesPersonnes.unshift(data);
+            },
+            error: (error) => {
+              console.error(error);
+            },
           });
         this.messageService.add({
           severity: 'success',
-          summary: 'Success',
-          detail: 'Message Content',
+          summary: 'Confirmé',
+          detail: 'Personne ajoutée',
         });
-        console.log(this.addUserForm.value);
         this.loading = false;
-        this.addUserForm.reset();
+        this.donneesDuFormulaireAjoutPersonne.reset();
       }, 2000);
     }
   }

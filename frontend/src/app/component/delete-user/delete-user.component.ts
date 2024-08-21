@@ -20,12 +20,13 @@ export class DeleteUserComponent {
     private personneService: PersonneService
   ) {}
   @Input() id: number | undefined;
-  @Input() personnes!: PersonneVO[];
+  @Input() listeDeToutesLesPersonnes!: PersonneVO[];
 
-  ngOnInit() {
-    // console.log(this.personnes)
-  }
-  confirm2(event: Event) {
+  /**
+   * Supprimer une personne
+   * @param event
+   */
+  supprimerPeronne(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: 'Voulez-vous vraiment supprimer cette personne?',
@@ -42,10 +43,10 @@ export class DeleteUserComponent {
           this.personneService.deletePersonne(this.id).subscribe((response) => {
             return response;
           });
-          const index = this.personnes.findIndex(
+          const index = this.listeDeToutesLesPersonnes.findIndex(
             (index) => index.id === this.id
           );
-          this.personnes.splice(index, 1);
+          this.listeDeToutesLesPersonnes.splice(index, 1);
         }
       },
       reject: () => {

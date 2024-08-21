@@ -1,0 +1,202 @@
+<div class="container">
+  <div class="AddContainer">
+    <h2>Ajout de personne</h2>
+    {{ addUserForm.value.nom }}
+    {{ addUserForm.value.prenom }}
+    {{ addUserForm.value.age }}
+    {{ addUserForm.value.departementVO }}
+    <form
+      [formGroup]="addUserForm"
+      novalidate
+      class="formulaire"
+      (ngSubmit)="onSubmit()"
+    >
+      <p-toast />
+      <p-floatLabel style="margin-bottom: 20px">
+        <input
+          style="width: 100%"
+          pInputText
+          id="nom"
+          appNoSpecialsCaracters
+          formControlName="nom"
+          ariaRequired="true"
+          required="true"
+        />
+        <label for="nom">Nom <span style="color: red">*</span></label>
+      </p-floatLabel>
+      <p-floatLabel style="margin-bottom: 20px">
+        <input
+          style="width: 100%"
+          pInputText
+          id="prenom"
+          formControlName="prenom"
+          appNoSpecialsCaracters
+          ariaRequired="true"
+          required="true"
+        />
+        <label for="prenom">Prenom <span style="color: red">*</span></label>
+      </p-floatLabel>
+      <p-floatLabel style="margin-bottom: 20px; width: 100%">
+        <p-inputNumber
+          class="champNumber"
+          [style]="{ width: '100%' }"
+          inputId="integeronly"
+          formControlName="age"
+          ariaRequired="true"
+          required="true"
+        />
+        <label for="age">Age <span style="color: red">*</span> </label>
+      </p-floatLabel>
+      <p-floatLabel style="margin-bottom: 20px; width: 100%">
+        <p-autoComplete
+          formControlName="departementVO"
+          [style]="{ width: '100%' }"
+          [suggestions]="filterDepartements"
+          optionValue="id"
+          (completeMethod)="filterDepartement($event)"
+          optionLabel="designation"
+          dropdown="true"
+          appendTo="body"
+        />
+        <label for="age"
+          >Selectionnez un departement <span style="color: red">*</span>
+        </label>
+      </p-floatLabel>
+      <p-button
+        label="Ajouter"
+        icon="pi pi-check"
+        [loading]="loading"
+        type="submit"
+        [style]="{ width: '100%' }"
+        [disabled]="
+          !addUserForm.value.nom ||
+          !addUserForm.value.prenom ||
+          !addUserForm.value.age ||
+          !addUserForm.value.departementVO ||
+          filterDepartements.length == 0
+        "
+      />
+    </form>
+  </div>
+  <div class="ListContainer">
+    <h2>Liste des personnes</h2>
+    <div class="card">
+      <p-table
+        #dt2
+        [value]="personnes"
+        dataKey="id"
+        [paginator]="true"
+        [rows]="5"
+        [loading]="loading"
+        showMenu="true"
+        [tableStyle]="{ 'min-width': '50rem' }"
+        [globalFilterFields]="[
+          'nom',
+          'prenom',
+          'age',
+          'departementVO.designation'
+        ]"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <!-- <th style="text-align: center">N°</th> -->
+            <th pSortableColumn="nom" style="width: 20%; text-align: center">
+              Nom <p-sortIcon field="nom" />
+            </th>
+            <th style="text-align: center">Prenom</th>
+            <th style="text-align: center">Age</th>
+            <th style="text-align: center">Departement</th>
+            <th style="text-align: center">Actions</th>
+          </tr>
+          <tr>
+            <th>
+              <p-columnFilter
+                type="text"
+                field="nom"
+                operator="contains"
+                [showClearButton]="false"
+                [showMenu]="false"
+                placeholder="Nom"
+              />
+            </th>
+            <th>
+              <p-columnFilter
+                type="text"
+                field="prenom"
+                operator="contains"
+                [showClearButton]="false"
+                [showMenu]="false"
+                placeholder="Prenom"
+              />
+            </th>
+            <th>
+              <p-columnFilter
+                field="personne.age"
+                matchMode="equals"
+                [showMenu]="false"
+              >
+                <ng-template
+                  pTemplate="filter"
+                  let-value
+                  let-filter="filterCallback"
+                >
+                  <p-dropdown
+                    [options]="statuses"
+                    (onChange)="filterCallback($event.value)"
+                    placeholder="Selectionnez"
+                    appendTo="body"
+                    [showClear]="true"
+                  >
+                    <ng-template let-option pTemplate="item">
+                      <p-tag [value]="option.label" [severity]="option.value" />
+                    </ng-template>
+                  </p-dropdown>
+                </ng-template>
+              </p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter
+                type="text"
+                field="departementVO.designation"
+                operator="contains"
+                [showClearButton]="false"
+                [showMenu]="false"
+                placeholder="Departement"
+              />
+            </th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-personne>
+          <tr>
+            <!-- <td>{{ personnes?.indexOf(personne) + 1 }}</td> -->
+            <td>{{ personne.nom }}</td>
+            <td>{{ personne.prenom }}</td>
+            <td style="text-align: center">{{ personne.age }}</td>
+            <td>
+              {{
+                !personne.departementVO.designation
+                  ? afficheDepartement(personne.departementVO.id)
+                  : personne.departementVO.designation
+              }}
+            </td>
+            <td style="display: flex">
+              <app-modal
+                [id]="personne.id"
+                [personne]="personne"
+                [personnes]="personnes"
+                [departements]="departements"
+                [departement]="personne.departementVO.id"
+                onKeyDown="onKeyDown()"
+              ></app-modal>
+              <app-delete-user
+                [id]="personne.id"
+                [personnes]="personnes"
+              ></app-delete-user>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

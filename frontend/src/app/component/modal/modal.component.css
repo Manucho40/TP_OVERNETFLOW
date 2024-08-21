@@ -1,0 +1,8 @@
+.formulaire {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.champNumber {
+  width: 100%;
+}

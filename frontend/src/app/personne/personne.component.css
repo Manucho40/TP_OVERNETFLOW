@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+}
+
+.AddContainer {
+  width: 30%;
+  padding: 10px;
+}
+.ListContainer {
+  width: 70%;
+}
+
+.formulaire {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.champNumber {
+  width: 100%;
+}
+
+.full-width-button {
+  width: 100%;
+}
+
+.ListContainer {
+  padding: 10px;
+}

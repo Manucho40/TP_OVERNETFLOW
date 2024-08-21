@@ -1,0 +1,77 @@
+<p-button (onClick)="showDialog()" label="Modifier" />
+<p-dialog
+  header="Edit Profile"
+  [modal]="true"
+  [(visible)]="visible"
+  [style]="{ width: '50rem' }"
+  dismissableMask="true"
+>
+  <form [formGroup]="editUser" novalidate class="formulaire">
+    <p-floatLabel style="margin-bottom: 20px">
+      <input style="width: 100%" pInputText id="nom" formControlName="nom" />
+      <label for="nom">Nom</label>
+    </p-floatLabel>
+    <p-floatLabel style="margin-bottom: 20px">
+      <input
+        style="width: 100%"
+        pInputText
+        id="prenom"
+        formControlName="prenom"
+      />
+      <label for="prenom">Prenom</label>
+    </p-floatLabel>
+    <p-floatLabel style="margin-bottom: 20px; width: 100%">
+      <p-inputNumber
+        class="champNumber"
+        [style]="{ width: '100%' }"
+        inputId="integeronly"
+        formControlName="age"
+        class="champNumber"
+        [style]="{ width: '100%' }"
+        inputId="integeronly"
+      />
+      <label for="age">Age</label>
+    </p-floatLabel>
+    <div>
+      <!-- <p-dropdown
+        [style]="{ width: '100%', marginBottom: '20px' }"
+        formControlName="departementVO"
+        [options]="departements"
+        optionLabel="designation"
+        appendTo="body"
+        
+      /> -->
+      <p-autoComplete
+        formControlName="departementVO"
+        [style]="{ width: '100%', marginBottom: '20px' }"
+        [suggestions]="filterDepart"
+        optionValue="id"
+        (completeMethod)="filterDepartement($event)"
+        optionLabel="designation"
+        dropdown="true"
+        appendTo="body"
+      />
+    </div>
+    <div style="display: flex; justify-content: flex-end">
+      <p-button
+        label="Modifier"
+        icon="pi pi-check"
+        [loading]="loadingEdit"
+        (onClick)="loadEdit()"
+        [style]="{ marginRight: '10px' }"
+        [disabled]="
+          !editUser.value.nom ||
+          !editUser.value.prenom ||
+          !editUser.value.age ||
+          !editUser.value.departementVO ||
+          filterDepart.length == 0
+        "
+      />
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        (onClick)="visible = false"
+      />
+    </div>
+  </form>
+</p-dialog>
